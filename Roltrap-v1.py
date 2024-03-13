@@ -55,7 +55,7 @@ import threading
 SPEEDOFSOUND = 34300
 TRIG = 23
 ECHO = 24
-DEVIATION = 2 # set deviation in cm (reading failures), prevents the system to count when not needed
+DEVIATION = 5 # set deviation in cm (reading failures), prevents the system to count when not needed
 TRAVELTIME = 15 # set time to travel on the escalator
 
 VersionContext = (1, 0, "Kachow-95") # Version name created by Joram Kooijker
@@ -169,11 +169,13 @@ class SimpleDecrease(threading.Thread):
     def run(self):
         while not self._stop_event.is_set():
             if self._basicEscObj.escalatorCount >= 0:
-                self._basicEscObj.decreaseCount(self._basicEscObj.escalatorCount)
                 for _ in range(TRAVELTIME):
                     if self._stop_event.is_set():
                         break
                     time.sleep(1)
+                self._basicEscObj.decreaseCount((self._basicEscObj.escalatorCount - 1 if self._basicEscObj.escalatorCount != 1 else self._basicEscObj.escalatorCount))
+
+
         
     def stop(self):
         self._stop_event.set()
