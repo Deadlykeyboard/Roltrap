@@ -58,7 +58,7 @@ ECHO = 24
 DEVIATION = 2 # set deviation in cm (reading failures), prevents the system to count when not needed
 TRAVELTIME = 15 # set time to travel on the escalator
 
-VersionContext = (1, 0, "Kachow-95") # Version name created by Joram Kooiker
+VersionContext = (1, 0, "Kachow-95") # Version name created by Joram Kooijker
 Version = '.'.join([str(x) for x in VersionContext])
 
 def setupGPIO():
