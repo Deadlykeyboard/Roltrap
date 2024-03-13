@@ -56,9 +56,9 @@ SPEEDOFSOUND = 34300
 TRIG = 23
 ECHO = 24
 DEVIATION = 2 # set deviation in cm (reading failures), prevents the system to count when not needed
-TRAVELTIME = 5 # set time to travel on the escalator
+TRAVELTIME = 15 # set time to travel on the escalator
 
-VersionContext = (1, 0, "Kachouw-95") # Version name created by Joram Kooiker
+VersionContext = (1, 0, "Kachow-95") # Version name created by Joram Kooiker
 Version = '.'.join([str(x) for x in VersionContext])
 
 def setupGPIO():
@@ -96,6 +96,7 @@ class ThreadedLoop(threading.Thread):
         return round(((SPEEDOFSOUND/2) * pulseDuration), 2)
 
     def makePulse(self) -> None:
+        GPIO.setwarnings(False)
         GPIO.output(TRIG, False)
         time.sleep(2)
 
@@ -124,9 +125,10 @@ class ThreadedLoop(threading.Thread):
             
 
 class BasicEscalator:
+    RUNNING           :str      = "Running"
+    STOPPED           :str      = "Stopped"
+
     def __init__(self):
-        self.RUNNING           :str      = "Running"
-        self.STOPPED           :str      = "Stopped"
         self._status           :str      = None
         self._onEscalator      :int      = 0
         self._lastMeasurement  :float    = 0
@@ -166,7 +168,7 @@ class SimpleDecrease(threading.Thread):
 
     def run(self):
         while not self._stop_event.is_set():
-            if not self._basicEscObj.escalatorCount <= 0:
+            if self._basicEscObj.escalatorCount >= 0:
                 self._basicEscObj.decreaseCount(self._basicEscObj.escalatorCount)
                 for _ in range(TRAVELTIME):
                     if self._stop_event.is_set():
@@ -184,7 +186,7 @@ def mainLoop():
     try:
         countLoop = ThreadedLoop()
         countLoop.start()
-        decreaseLoop = SimpleDecrease(callable=escalatorLogic)
+        decreaseLoop = SimpleDecrease(basicEscObj=escalatorLogic)
         decreaseLoop.start()
         while True:
             escalatorLogic.compareAndIncrease(countLoop.current_distance)
@@ -206,5 +208,6 @@ if __name__ == "__main__":
     print("""
 [Escalator version: {0}]
 """.format(Version))
+    time.sleep(2)
     setupGPIO()
     mainLoop()
