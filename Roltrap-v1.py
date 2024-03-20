@@ -53,6 +53,7 @@ import threading
 
 # defining the consts
 SPEEDOFSOUND = 34300
+LED = 16
 TRIG = 23
 ECHO = 24
 DEVIATION = 5 # set deviation in cm (reading failures), prevents the system to count when not needed
@@ -67,6 +68,7 @@ def setupGPIO():
     """
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(TRIG, GPIO.OUT)
+    GPIO.setup(LED, GPIO.OUT)
     GPIO.setup(ECHO, GPIO.IN)
 
 class ThreadedLoop(threading.Thread):
@@ -185,12 +187,14 @@ class SimpleDecrease(threading.Thread):
 
 def mainLoop():
     escalatorLogic = BasicEscalator()
+    
     try:
         countLoop = ThreadedLoop()
         countLoop.start()
         decreaseLoop = SimpleDecrease(basicEscObj=escalatorLogic)
         decreaseLoop.start()
         while True:
+            GPIO.output(LED, True) if escalatorLogic.status == BasicEscalator.RUNNING else GPIO.output(LED, False)
             escalatorLogic.compareAndIncrease(countLoop.current_distance)
             print(f"""
 Last Measurement: {escalatorLogic._lastMeasurement}
